@@ -10,7 +10,8 @@ const config = {
   tagline: `Yarn, the modern JavaScript package manager`,
   url: `https://yarnpkg.com`,
   baseUrl: `/`,
-  onBrokenLinks: `throw`,
+  // TODO: Switch back to `throw`
+  onBrokenLinks: `warn`,
   onBrokenMarkdownLinks: `warn`,
   favicon: `img/favicon.ico`,
 

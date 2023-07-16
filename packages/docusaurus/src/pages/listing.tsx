@@ -107,7 +107,6 @@ function useReleaseSidebar({name, version}: {name: string, version: string}) {
         }
       } break;
     }
-
     if (typeof repositoryUrl !== `undefined`) {
       toolsSidebar.items.push({
         type: `link`,
@@ -469,10 +468,12 @@ function PackageInfoPage() {
 // eslint-disable-next-line arca/no-default-export
 export default function PackageInfoPageWrapper() {
   return (
-    <Suspense fallback={<LoadingPage/>}>
-      <BrowserOnly>
-        {() => <PackageInfoPage/>}
-      </BrowserOnly>
-    </Suspense>
+    <BrowserOnly>
+      {() => (
+        <Suspense fallback={<LoadingPage/>}>
+          <PackageInfoPage/>
+        </Suspense>
+      )}
+    </BrowserOnly>
   );
 }

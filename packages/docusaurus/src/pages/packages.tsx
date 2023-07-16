@@ -1,17 +1,17 @@
-import Link                                                     from '@docusaurus/Link';
-import {useHistory, useLocation}                                from '@docusaurus/router';
-import useDocusaurusContext                                     from '@docusaurus/useDocusaurusContext';
-import {CodeIcon, FileDirectoryIcon}                            from '@primer/octicons-react';
-import Layout                                                   from '@theme/Layout';
-import clsx                                                     from 'clsx';
-import {InstantSearch, useHits, useInstantSearch, useSearchBox} from 'react-instantsearch-hooks-web';
-import Skeleton                                                 from 'react-loading-skeleton';
-import React, {useCallback, useEffect, useRef, useState}        from 'react';
+import Link                                              from '@docusaurus/Link';
+import {useHistory, useLocation}                         from '@docusaurus/router';
+import useDocusaurusContext                              from '@docusaurus/useDocusaurusContext';
+import {CodeIcon, FileDirectoryIcon}                     from '@primer/octicons-react';
+import Layout                                            from '@theme/Layout';
+import clsx                                              from 'clsx';
+import {InstantSearch, useHits, useSearchBox}            from 'react-instantsearch-hooks-web';
+import Skeleton                                          from 'react-loading-skeleton';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
-import {searchClient}                                           from '../lib/searchClient';
+import {searchClient}                                    from '../lib/searchClient';
 
-import indexStyles                                              from './index.module.css';
-import styles                                                   from './packages.module.css';
+import indexStyles                                       from './index.module.css';
+import styles                                            from './packages.module.css';
 
 type SearchResult = {
   title: string;
