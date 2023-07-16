@@ -2,8 +2,8 @@
   display: flex;
   width: 100%;
 
-  margin: 40px 90px;
-  width: calc(100vw - 180px);
+  margin: 40px 40px;
+  width: calc(100vw - 80px);
   min-height: calc(100vh - var(--ifm-navbar-height) - 40px);
 
   background: white;

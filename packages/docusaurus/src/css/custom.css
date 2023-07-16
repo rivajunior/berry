@@ -4,8 +4,6 @@
  * work well for content-centric websites.
  */
 
-@import url("https://fonts.googleapis.com/css?family=PT+Sans:400,700");
-
 /**
  * We don't want html, body to have height: 100%, because it would break
  * the body background image, which we need to display the cat on the
@@ -15,6 +13,8 @@
  */
 html, body {
   height: auto !important;
+
+  --ifm-code-padding-horizontal: 0.2rem;
 }
 
 body {
@@ -22,8 +22,11 @@ body {
 }
 
 html {
-  background-image: url('/img/yarn-bg-lossless.webp');
-  background-size: 100% auto;
+  background-image: url('/img/yarn-bg-black.webp');
+  background-size: 100% 100%;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-color: #ffffff;
 }
 
 .theme-doc-sidebar-container {
@@ -89,6 +92,15 @@ body:not([x-doc-route="/"]) .main-wrapper > :last-child {
     width: 100vw;
     border-radius: 0;
   }
+}
+
+.centered-icon {
+  display: flex;
+  align-items: center;
+}
+
+.centered-icon svg {
+  display: block;
 }
 
 .navbar {
@@ -176,6 +188,13 @@ body[x-doc-route^="/configuration/"] .col {
 
 .rjd-annotation p:last-child {
   margin-bottom: 0;
+}
+
+.rjd-annotation a {
+  color: rgb(156, 220, 254);
+  text-decoration: underline;
+  text-decoration-skip: ink;
+  text-underline-offset: 0.2em;
 }
 
 .rjd-annotation code {

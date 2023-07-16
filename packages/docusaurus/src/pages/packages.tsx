@@ -1,16 +1,17 @@
-import Link                                              from '@docusaurus/Link';
-import {useHistory}                                      from '@docusaurus/router';
-import useDocusaurusContext                              from '@docusaurus/useDocusaurusContext';
-import {CodeIcon, FileDirectoryIcon}                     from '@primer/octicons-react';
-import Layout                                            from '@theme/Layout';
-import clsx                                              from 'clsx';
-import {InstantSearch, useHits, useSearchBox}            from 'react-instantsearch-hooks-web';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import Link                                                     from '@docusaurus/Link';
+import {useHistory, useLocation}                                from '@docusaurus/router';
+import useDocusaurusContext                                     from '@docusaurus/useDocusaurusContext';
+import {CodeIcon, FileDirectoryIcon}                            from '@primer/octicons-react';
+import Layout                                                   from '@theme/Layout';
+import clsx                                                     from 'clsx';
+import {InstantSearch, useHits, useInstantSearch, useSearchBox} from 'react-instantsearch-hooks-web';
+import Skeleton                                                 from 'react-loading-skeleton';
+import React, {useCallback, useEffect, useRef, useState}        from 'react';
 
-import {searchClient}                                    from '../lib/searchClient';
+import {searchClient}                                           from '../lib/searchClient';
 
-import indexStyles                                       from './index.module.css';
-import styles                                            from './packages.module.css';
+import indexStyles                                              from './index.module.css';
+import styles                                                   from './packages.module.css';
 
 type SearchResult = {
   title: string;
@@ -35,40 +36,45 @@ export default function Packages(): JSX.Element {
 }
 
 const defaultRequests = [
-  `typanion`,
   `clipanion`,
   `typescript`,
-  `ts-node`,
+  `next`,
   `jest`,
+  `eslint`,
   `esbuild`,
   `webpack`,
-  `next`,
-  `eslint`,
+  `ts-node`,
+  `typanion`,
 ].map(objectId => ({
   indexName: `npm-search`,
   objectID: objectId,
 }));
 
-function useHitsWithDefaults(query: string) {
+function useHitsWithDefaults(query: string): Array<any> {
   const {hits} = useHits();
-  const [defaults, setDefaults] = useState<Array<any>>([]);
+  const [defaults, setDefaults] = useState<Array<any> | null>(null);
 
   useEffect(() => {
-    if (query !== ``)
-      return;
-
-    setDefaults([]);
     searchClient.customRequest({method: `POST`, path: `/1/indexes/*/objects`}, {
       data: {requests: defaultRequests},
     }).then(({results}: any) => {
       setDefaults(results);
     });
-  }, [query]);
+  }, []);
 
-  return query ? hits : defaults;
+  if (query)
+    return hits;
+
+  if (!defaults)
+    return defaultRequests.map((_, index) => ({rev: `!${index}`}));
+
+  return defaults;
 }
 
 function SearchInterface() {
+  const history = useHistory();
+  const location = useLocation();
+
   const refreshRef = useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
 
   const queryHook = useCallback((query: string, hook: (value: string) => void) => {
@@ -81,39 +87,52 @@ function SearchInterface() {
   const {query, refine} = useSearchBox({queryHook});
   const hits = useHitsWithDefaults(query);
 
-  const sortedHits = hits.sort((a, b) => {
-    return b.downloadsLast30Days - a.downloadsLast30Days;
-  });
+  useEffect(() => {
+    const keyDownHandler = (event: KeyboardEvent) => {
+      if (event.key === `Escape`) {
+        history.goBack();
+      }
+    };
+
+    document.addEventListener(`keydown`, keyDownHandler);
+    return () => {
+      document.removeEventListener(`keydown`, keyDownHandler);
+    };
+  }, []);
+
+  useEffect(() => {
+    const parsedSearch = new URLSearchParams(location.search);
+    refine(parsedSearch.get(`q`) ?? ``);
+  }, [location.search]);
 
   return <>
     <div className={styles.searchContainer}>
-      <SearchBar query={query} refine={refine}/>
+      <SearchBar/>
     </div>
-    <div className={`container`}>
+    <div className={styles.searchContainer}>
       <div className={`row`}>
-        {sortedHits.map(hit => <SearchResult key={hit.rev} query={query} hit={hit}/>)}
+        {hits.map(hit => <SearchResult key={hit.rev} query={query} hit={hit}/>)}
       </div>
     </div>
+    <div/>
   </>;
 }
 
-function SearchBar({refine}: any) {
-  const [value, setValue] = useState<string>(``);
+function SearchBar() {
   const history = useHistory();
 
+  const location = useLocation();
+  const search = new URLSearchParams(location.search);
+  const query = search.get(`q`) ?? ``;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.currentTarget.value;
-
     const searchParams = new URLSearchParams(window.location.search);
-    searchParams.set(`q`, query);
+    searchParams.set(`q`, e.currentTarget.value);
     history.replace(`?${searchParams.toString()}`);
-
-    setValue(query);
-    refine(query);
   };
 
   return (
-    <input className={clsx(indexStyles.search, styles.search)} autoFocus={true} placeholder={`Search packages (i.e. babel, webpack, react, ...)`} value={value} onChange={handleChange}/>
+    <input className={clsx(indexStyles.search, styles.search)} autoFocus={true} placeholder={`Search packages (i.e. babel, webpack, react, ...)`} value={query} onChange={handleChange}/>
   );
 }
 
@@ -132,29 +151,46 @@ function getDownloadBucket(dl: number) {
 }
 
 function SearchResult({query, hit}: any) {
-  const downloadBucket = getDownloadBucket(hit.downloadsLast30Days);
+  const downloadBucket = hit.downloadsLast30Days
+    ? getDownloadBucket(hit.downloadsLast30Days)
+    : null;
 
   const dlBadge = downloadBucket !== null && <div className={styles.badge}>
     <img src={`/img/ico-${downloadBucket}.svg`}/>
     <div>{hit.humanDownloadsLast30Days}</div>
   </div>;
 
-  const versionBadge = <div className={styles.badge} style={{marginLeft: `auto`, marginRight: 0}}>
+  const versionBadge = hit.version && <div className={styles.badge} style={{marginLeft: `auto`, marginRight: 0}}>
     {hit.version}
   </div>;
 
-  const typeBadge = hit.types.ts === `included`
-    ? <div className={styles.badge} style={{background: `#0380d9`, color: `#ffffff`}}>TS</div>
-    : hit.types.definitelyTyped
-      ? <div className={styles.badge} style={{background: `#03c4d9`, color: `#ffffff`}}>DT</div>
-      : <div className={styles.badge} style={{background: `#cccccc`, color: `#ffffff`}}>NT</div>;
+  const typeBadge = hit.types
+    ? hit.types.ts === `included`
+      ? <div className={styles.badge} style={{background: `#0380d9`, color: `#ffffff`}}>TS</div>
+      : hit.types.definitelyTyped
+        ? <div className={styles.badge} style={{background: `#03c4d9`, color: `#ffffff`}}>DT</div>
+        : <div className={styles.badge} style={{background: `#cccccc`, color: `#ffffff`}}>NT</div>
+    : null;
 
-  const listing = `/listing?q=${encodeURIComponent(query)}&name=${encodeURIComponent(hit.name)}&version=${encodeURIComponent(hit.version)}`;
+  const listing = hit.name
+    ? `/listing?q=${encodeURIComponent(query)}&name=${encodeURIComponent(hit.name)}&version=${encodeURIComponent(hit.version)}`
+    : null;
+
+  const title = hit.name && hit.owner?.name && (
+    <div className={styles.resultTitle}>
+      <h3 className={`text--truncate`}>
+        {hit.name}
+      </h3>
+      <div className={styles.resultBy}>
+        {` `}by {hit.owner?.name}
+      </div>
+    </div>
+  );
 
   return (
     <div className={clsx(`col col--4`, styles.resultCell)}>
       <div className={styles.result}>
-        <Link className={styles.resultLink} href={listing}/>
+        {listing && <Link className={styles.resultLink} href={listing}/>}
         <div className={styles.resultAside}>
           <div className={styles.resultBadges}>
             {typeBadge}
@@ -163,20 +199,13 @@ function SearchResult({query, hit}: any) {
           </div>
           <div className={styles.resultTools}>
             <Tool icon={FileDirectoryIcon} href={listing}/>
-            <Tool icon={CodeIcon} href={`https://npm.runkit.com/${hit.name}`}/>
+            <Tool icon={CodeIcon} href={hit.name && `https://npm.runkit.com/${hit.name}`}/>
           </div>
         </div>
         <div className={styles.resultMain}>
-          <div className={styles.resultTitle}>
-            <h3 className={`text--truncate`}>
-              {hit.name}
-            </h3>
-            <div className={styles.resultBy}>
-              {` `}by {hit.owner.name}
-            </div>
-          </div>
+          {title ?? <Skeleton/>}
           <div className={styles.resultDescription}>
-            {hit.description}
+            {hit.description ?? <Skeleton count={2}/>}
           </div>
         </div>
       </div>
@@ -185,9 +214,11 @@ function SearchResult({query, hit}: any) {
 }
 
 function Tool({icon: Icon, href}: any) {
+  const Component = href ? `a` : `div`;
+
   return (
-    <Link className={styles.tool} href={href} target={href.startsWith(`https:`) ? `_blank` : undefined}>
+    <Component className={styles.tool} href={href} target={href?.startsWith(`https:`) ? `_blank` : undefined}>
       <Icon/>
-    </Link>
+    </Component>
   );
 }

@@ -22,6 +22,10 @@ const config = {
     locales: [`en`],
   },
 
+  plugins: [
+    require.resolve(`./plugin`),
+  ],
+
   webpack: {
     jsLoader: isServer => ({
       loader: require.resolve(`esbuild-loader`),

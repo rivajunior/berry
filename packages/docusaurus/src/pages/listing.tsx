@@ -1,139 +1,23 @@
-import BrowserOnly                                                                                                               from '@docusaurus/BrowserOnly';
-import {useLocation}                                                                                                             from '@docusaurus/router';
+import BrowserOnly                                                                                                                                                                from '@docusaurus/BrowserOnly';
+import {useLocation}                                                                                                                                                              from '@docusaurus/router';
 // @ts-expect-error
-import {DocsSidebarProvider}                                                                                                     from '@docusaurus/theme-common/internal';
-import {HtmlClassNameProvider}                                                                                                   from '@docusaurus/theme-common';
-import Editor                                                                                                                    from '@monaco-editor/react';
-import {AlertIcon, ArrowLeftIcon, CheckIcon, FileDirectoryFillIcon, FileIcon, HomeIcon, HourglassIcon, MarkGithubIcon, PlayIcon} from '@primer/octicons-react';
-import clsx                                                                                                                      from 'clsx';
-import MarkdownIt                                                                                                                from 'markdown-it';
-import pako                                                                                                                      from 'pako';
-import React, {useEffect, useState}                                                                                              from 'react';
+import {DocsSidebarProvider}                                                                                                                                                      from '@docusaurus/theme-common/internal';
+import {HtmlClassNameProvider}                                                                                                                                                    from '@docusaurus/theme-common';
+import Editor                                                                                                                                                                     from '@monaco-editor/react';
+import {AlertIcon, ArrowLeftIcon, CheckIcon, FileDirectoryFillIcon, FileIcon, GearIcon, GlobeIcon, HomeIcon, HourglassIcon, ListUnorderedIcon, MarkGithubIcon, PlayIcon, TagIcon} from '@primer/octicons-react';
+import {normalizeRepoUrl}                                                                                                                                                         from '@yarnpkg/monorepo/packages/plugin-git/sources/utils/normalizeRepoUrl';
+import clsx                                                                                                                                                                       from 'clsx';
+import gitUrlParse                                                                                                                                                                from 'git-url-parse';
+import Select, {MenuListProps}                                                                                                                                                    from 'react-select';
+import {FixedSizeList}                                                                                                                                                            from 'react-window';
+import React, {Suspense, useReducer, useState}                                                                                                                                    from 'react';
+import semver                                                                                                                                                                     from 'semver';
 
-import Layout                                                                                                                    from '../theme/DocPage/Layout/index.js';
+import {usePackageInfo, useReleaseFile, useReleaseInfo, useReleaseReadme, useResolvedVersion}                                                                                     from '../lib/npmTools';
+import {Check, checks}                                                                                                                                                            from '../lib/packageChecks';
+import Layout                                                                                                                                                                     from '../theme/DocPage/Layout/index';
 
-import styles                                                                                                                    from './listing.module.css';
-
-type CheckResult = {
-  ok: true;
-} | {
-  ok: false;
-  message: string;
-};
-
-type Check = {
-  success: string;
-  failure: string;
-  check: (filesDict: Map<string, File>) => Promise<CheckResult>;
-};
-
-type File = {
-  name: string;
-  buffer: ArrayBuffer;
-};
-
-const md = new MarkdownIt();
-
-function getFileContent(file: File) {
-  return new TextDecoder().decode(file.buffer);
-}
-
-function getPackageJson(filesDict: Map<string, File>) {
-  const pkgFile = filesDict.get(`package.json`);
-  if (!pkgFile)
-    throw new Error(`No package.json file`);
-
-  let manifest;
-  try {
-    manifest = JSON.parse(getFileContent(pkgFile));
-  } catch {
-    throw new Error(`Invalid package.json file`);
-  }
-
-  return manifest;
-}
-
-function getExportsConfiguration(filesDict: Map<string, File>) {
-  const pkgFile = getPackageJson(filesDict);
-  const exports = pkgFile.exports ?? pkgFile.main ?? `index`;
-
-  const exportsAsObject = typeof exports === `string`
-    ? {[`.`]: exports}
-    : exports;
-
-  for (const [key, value] of Object.entries(exportsAsObject)) {
-    exportsAsObject[key] = Object.assign({}, ...[value].flat().map(value => {
-      return typeof value === `string` ? {default: value} : value;
-    }));
-  }
-
-  return exportsAsObject;
-}
-
-function normalizeModulePath(modulePath: string, filesDict: Map<string, File>, resolveExtension: Array<string> = []) {
-  modulePath = new URL(modulePath, `https://example.com/`).pathname.slice(1);
-
-  for (const candidatePath of [modulePath, `${modulePath}/index`]) {
-    if (filesDict.has(candidatePath))
-      return modulePath;
-
-    for (const ext of resolveExtension) {
-      if (filesDict.has(`${candidatePath}${ext}`)) {
-        return `${candidatePath}${ext}`;
-      }
-    }
-  }
-
-  throw new Error(`Failed to resolve the module path`);
-}
-
-const checks: Array<Check> = [{
-  success: `The package has a commonjs entry point`,
-  failure: `The package doesn't seem to have a commonjs entry point`,
-  check: async filesDict => {
-    const pkgFile = getPackageJson(filesDict);
-    const exportsConfiguration = getExportsConfiguration(filesDict);
-
-    const entryPoint = exportsConfiguration[`.`];
-
-    const commonjsEntryPoint = entryPoint.require ?? entryPoint.default;
-    const resolvedEntryPoint = normalizeModulePath(commonjsEntryPoint, filesDict, [`.cjs`, `.js`]);
-
-    if (resolvedEntryPoint.endsWith(`.js`) && pkgFile.type === `module`)
-      throw new Error(`Entry point isn't CJS`);
-
-    return {ok: true};
-  },
-}, {
-  success: `The package doesn't have postinstall scripts`,
-  failure: `The package has postinstall scripts`,
-  check: async filesDict => {
-    const pkgJson = getPackageJson(filesDict);
-
-    if (pkgJson.scripts)
-      for (const scriptName of [`preinstall`, `install`, `postinstall`])
-        if (typeof pkgJson.scripts[scriptName] !== `undefined`)
-          throw new Error(`Found a ${scriptName} script`);
-
-    if (filesDict.has(`bindings.gyp`))
-      throw new Error(`Found a bindings.gyp file`);
-
-    return {ok: true};
-  },
-}, {
-  success: `The package ships with types`,
-  failure: `The package doesn't ship with types`,
-  check: async filesDict => {
-    const pkgJson = getPackageJson(filesDict);
-    const exportsConfiguration = getExportsConfiguration(filesDict);
-
-    const typesEntryPoint = pkgJson.types ?? pkgJson.typings ?? Object.values(exportsConfiguration[`.`])[0];
-    const typesEntryPointNoExt = typesEntryPoint.replace(/(\.[mc]?(js|ts)x?|\.d\.ts)$/, ``);
-    normalizeModulePath(typesEntryPointNoExt, filesDict, [`.mtsx`, `.mts`, `.tsx`, `ts`, `.d.ts`]);
-
-    return {ok: true};
-  },
-}];
+import styles                                                                                                                                                                     from './listing.module.css';
 
 const SidebarEntry = ({icon: Icon, name}: {icon: React.FunctionComponent, name: string}) => (
   <div className={clsx(styles.entry, `text--truncate`)}>
@@ -141,8 +25,14 @@ const SidebarEntry = ({icon: Icon, name}: {icon: React.FunctionComponent, name: 
   </div>
 );
 
-function getSidebarFromFiles(name: string, version: string, filesDict: Map<string, File>, getUrl: (file: string | null) => string) {
-  const packageJson = getPackageJson(filesDict);
+function useReleaseSidebar({name, version}: {name: string, version: string}) {
+  const location = useLocation();
+
+  const pkgInfo = usePackageInfo(name);
+  const releaseInfo = useReleaseInfo({
+    name,
+    version,
+  });
 
   const makeCategory = (name: string) => ({
     type: `category`,
@@ -164,6 +54,23 @@ function getSidebarFromFiles(name: string, version: string, filesDict: Map<strin
     return category;
   };
 
+  const getUrl = (file: string | null, version?: string) => {
+    const newSearch = new URLSearchParams(location.search);
+
+    if (file === null)
+      newSearch.delete(`file`);
+    else
+      newSearch.set(`file`, file);
+
+    if (typeof version === `undefined`)
+      newSearch.delete(`version`);
+    else
+      newSearch.set(`version`, version);
+
+    const newSearchStr = newSearch.toString();
+    return `?${newSearchStr}`;
+  };
+
   const toolsSidebar = Object.assign(makeCategory(`${name} @ ${version}`), {
     collapsed: false,
     collapsible: false,
@@ -171,20 +78,43 @@ function getSidebarFromFiles(name: string, version: string, filesDict: Map<strin
     href: getUrl(null),
   });
 
-  if (packageJson.homepage) {
+  toolsSidebar.items.push({
+    type: `link`,
+    label: <SidebarEntry icon={HomeIcon} name={`Information`}/>,
+    href: getUrl(null),
+  });
+
+  if (typeof releaseInfo.npm.homepage === `string`) {
     toolsSidebar.items.push({
       type: `link`,
-      label: <SidebarEntry icon={HomeIcon} name={`Homepage`}/>,
-      href: packageJson.homepage,
+      label: <SidebarEntry icon={GlobeIcon} name={`Website`}/>,
+      href: releaseInfo.npm.homepage,
     });
   }
 
-  if (packageJson.repository?.url) {
-    toolsSidebar.items.push({
-      type: `link`,
-      label: <SidebarEntry icon={MarkGithubIcon} name={`Repository`}/>,
-      href: packageJson.repository?.url,
-    });
+  if (typeof releaseInfo.npm.repository?.url === `string`) {
+    const normalizedRepository = normalizeRepoUrl(releaseInfo.npm.repository.url);
+    const repositoryInfo = gitUrlParse(normalizedRepository);
+
+    let repositoryUrl: string | undefined;
+    switch (repositoryInfo.source) {
+      case `github.com`: {
+        if (repositoryInfo.owner && repositoryInfo.name) {
+          repositoryUrl = `https://github.com/${repositoryInfo.owner}/${repositoryInfo.name}`;
+          if (typeof releaseInfo.npm.repository.directory === `string`) {
+            repositoryUrl += `/tree/${releaseInfo.npm.repository.directory}`;
+          }
+        }
+      } break;
+    }
+
+    if (typeof repositoryUrl !== `undefined`) {
+      toolsSidebar.items.push({
+        type: `link`,
+        label: <SidebarEntry icon={MarkGithubIcon} name={`Repository`}/>,
+        href: repositoryUrl,
+      });
+    }
   }
 
   toolsSidebar.items.push({
@@ -198,13 +128,34 @@ function getSidebarFromFiles(name: string, version: string, filesDict: Map<strin
     value: `<div style="height: 10px"/>`,
   });
 
-  const packageSidebar = Object.assign(makeCategory(`package`), {
-    collapsed: false,
-    collapsible: false,
+  const versionsSidebar = Object.assign(makeCategory(`Versions`), {
+    collapsed: true,
+    collapsible: true,
   });
 
-  for (const file of filesDict.values()) {
-    const segments = file.name.split(/\//g);
+  const taggedVersions = new Set(Object.values(pkgInfo[`dist-tags`]));
+
+  const versions = Object.keys(pkgInfo.versions).filter(version => {
+    return semver.prerelease(version) === null || taggedVersions.has(version);
+  });
+
+  versions.sort(semver.rcompare);
+
+  for (const version of versions) {
+    versionsSidebar.items.push({
+      type: `link`,
+      label: <SidebarEntry icon={TagIcon} name={version}/>,
+      href: getUrl(null, version),
+    });
+  }
+
+  const packageSidebar = Object.assign(makeCategory(`Files`), {
+    collapsed: true,
+    collapsible: true,
+  });
+
+  for (const file of releaseInfo.jsdelivr.files.values()) {
+    const segments = file.name.slice(1).split(/\//g);
 
     let parent = packageSidebar;
     for (let t = 0; t < segments.length - 1; ++t)
@@ -235,61 +186,164 @@ function getSidebarFromFiles(name: string, version: string, filesDict: Map<strin
 
   sortCategory(packageSidebar);
 
-  return [
+  const sidebar: Array<any> = [
     toolsSidebar,
+    versionsSidebar,
     packageSidebar,
   ];
+
+  const search = new URLSearchParams(location.search);
+  const query = search.get(`q`);
+
+  if (typeof query === `string`) {
+    sidebar.unshift({
+      type: `link`,
+      label: <SidebarEntry icon={ArrowLeftIcon} name={`Back to search`}/>,
+      href: `/packages?q=${encodeURIComponent(query)}`,
+    }, {
+      type: `html`,
+      value: `<div style="height: 10px"/>`,
+    });
+  }
+
+  return sidebar;
 }
 
-async function getPackageInfo(name: string | null, version: string | null, getUrl: (file: string | null) => string) {
-  if (name === null || version === null)
-    throw new Error(`Missing mandatory search parameters`);
+type VersionChoice = {
+  value: string;
+  label: string;
+  time: Date;
+};
 
-  // eslint-disable-next-line no-restricted-globals
-  const req = await fetch(`https://registry.yarnpkg.com/${name}/-/${name.replace(/^@[^/]+\//, ``)}-${version}.tgz`);
-  const res = await req.arrayBuffer();
+const rtf1 = new Intl.RelativeTimeFormat(`en`, {numeric: `auto`});
 
-  // @ts-expect-error
-  const {default: untar} = await import(`js-untar`);
+const now = Date.now();
 
-  const uncompressed = pako.ungzip(res).buffer;
-  const unpacked: Array<File> = await untar(uncompressed);
+const DURATION_THRESHOLDS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+  [`day`, 1000 * 60 * 60 * 24],
+  [`month`, 1000 * 60 * 60 * 24 * 31],
+  [`year`, 1000 * 60 * 60 * 24 * 365],
+];
 
-  for (const file of unpacked)
-    file.name = file.name.replace(/^[^/]*\/+/, ``);
+function bestDurationUnit(duration: number): [number, Intl.RelativeTimeFormatUnit] {
+  let best = 0;
 
-  const filesDict = new Map<string, File>();
-  for (const file of unpacked)
-    filesDict.set(file.name.toLowerCase(), file);
+  while (best + 1 < DURATION_THRESHOLDS.length && duration > DURATION_THRESHOLDS[best + 1][1])
+    best += 1;
 
-  return {
-    filesDict,
-    sidebar: getSidebarFromFiles(name, version, filesDict, getUrl),
+  return [-Math.round(duration / DURATION_THRESHOLDS[best][1]), DURATION_THRESHOLDS[best][0]];
+}
+
+const ITEM_HEIGHT = 35;
+
+const MenuList = ({options, children, maxHeight, getValue}: MenuListProps<VersionChoice>) => {
+  const [value] = getValue();
+  const initialOffset = options.indexOf(value) * ITEM_HEIGHT;
+
+  const items = Array.isArray(children)
+    ? children
+    : children
+      ? [<React.Fragment key={0}>{children}</React.Fragment>]
+      : [];
+
+  return (
+    <FixedSizeList
+      width={`100%`}
+      height={Math.min(maxHeight, items.length * ITEM_HEIGHT)}
+      itemCount={items.length}
+      itemSize={ITEM_HEIGHT}
+      initialScrollOffset={initialOffset}
+    >
+      {({index, style}) => <div style={style}>{items[index]}</div>}
+    </FixedSizeList>
+  );
+};
+
+function VersionSelector({name, version}: {name: string, version: string}) {
+  const pkgInfo = usePackageInfo(name);
+
+  const copy = {...pkgInfo.time};
+  delete copy.created;
+  delete copy.modified;
+
+  const options: Array<VersionChoice> = Object.entries(copy).filter(([version]) => {
+    return pkgInfo.versions[version] && !pkgInfo.versions[version].deprecated;
+  }).map(([version, releaseTime]) => ({
+    value: version,
+    label: ``,
+    time: new Date(releaseTime),
+  }));
+
+  options.sort((a, b) => {
+    return b.time.getTime() - a.time.getTime();
+  });
+
+  const selected = options.find(option => {
+    return option.value === version;
+  });
+
+  const formatOptionLabel = (option: VersionChoice) => {
+    return <>
+      <div className={styles.versionSelectorOption}>
+        <div className={styles.versionSelectorVersion}>
+          {option.value}
+        </div>
+        <div className={styles.versionSelectorExtra}>
+          {rtf1.format(...bestDurationUnit(now - option.time.getTime()))}
+        </div>
+      </div>
+    </>;
   };
+
+  return (
+    <Select<VersionChoice> className={styles.versionSelector} options={options} value={selected} components={{MenuList}} formatOptionLabel={formatOptionLabel}/>
+  );
 }
 
-function ReportView({name, version, filesDict}: {name: string, version: string, filesDict: Map<string, File>}) {
-  const readmeFile = filesDict.get(`readme.md`);
+function ReportView({name, version}: {name: string, version: string}) {
+  const readme = useReleaseReadme({
+    name,
+    version,
+  });
 
-  let readmeText = readmeFile
-    ? getFileContent(readmeFile)
-    : ``;
-
-  // We don't want the Readme header; we'll put our own
-  readmeText = readmeText.replace(/^\s*#[^\n]*\n+((?![`[]])[^\n]*\n)?\s*/, ``);
+  const [isEditMode, toggleEditMode] = useReducer(value => {
+    return !value;
+  }, true);
 
   return (
     <div className={`row`}>
       <div className={`col`}>
         <div className={`theme-doc-markdown markdown`}>
-          <h1>{name} @ {version}</h1>
-          <table className={styles.reportTable}>
-            <tbody>
-              {checks.map((check, index) => <ReportCheck key={index} filesDict={filesDict} check={check}/>)}
-            </tbody>
-          </table>
-          <div className={`theme-doc-markdown markdown`}>
-            <div dangerouslySetInnerHTML={{__html: md.render(readmeText)}}/>
+          <h1 className={styles.reportTitle}>
+            <div>{name}</div>
+            <VersionSelector name={name} version={version}/>
+          </h1>
+          <div className={styles.reportTableContainer}>
+            <table>
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td onClick={() => toggleEditMode(null)}>
+                    <div className={styles.reportCheckContainer}>
+                      <GearIcon/>
+                    </div>
+                  </td>
+                </tr>
+                {checks.map((check, index) => <ReportCheck key={index} name={name} version={version} check={check} isEditMode={isEditMode}/>)}
+              </tbody>
+            </table>
+          </div>
+          <div className={styles.reportReadme}>
+            <div className={styles.reportReadmeIcon}>
+              <ListUnorderedIcon/>
+            </div>
+            <div className={styles.reportReadmeText}>
+              README
+            </div>
+          </div>
+          <div className={clsx(styles.reportMain, `markdown-body`)}>
+            <div dangerouslySetInnerHTML={{__html: readme}}/>
           </div>
         </div>
       </div>
@@ -297,16 +351,13 @@ function ReportView({name, version, filesDict}: {name: string, version: string, 
   );
 }
 
-function ReportCheck({filesDict, check}: {filesDict: Map<string, File>, check: Check}) {
-  const [result, setResult] = useState<CheckResult | null>(null);
+function ReportCheck({name, version, check, isEditMode}: {name: string, version: string, check: Check, isEditMode: boolean}) {
+  const [selected, setSelected] = useState(check.defaultEnabled);
 
-  useEffect(() => {
-    check.check(filesDict).then(result => {
-      setResult(result);
-    }, err => {
-      setResult({ok: false, message: err.message});
-    });
-  }, [filesDict]);
+  const result = check.useCheck({
+    name,
+    version,
+  });
 
   const icon = result
     ? result.ok
@@ -320,6 +371,12 @@ function ReportCheck({filesDict, check}: {filesDict: Map<string, File>, check: C
       : styles.reportCheckFailure
     : undefined;
 
+  if (!isEditMode && !selected)
+    return null;
+
+  if (!isEditMode && result.ok && !result.message)
+    return null;
+
   return (
     <tr className={styles.reportLine}>
       <td>
@@ -327,83 +384,84 @@ function ReportCheck({filesDict, check}: {filesDict: Map<string, File>, check: C
           {icon}
         </div>
       </td>
-      <td>
-        <div className={styles.reportLabel}>
-          {result?.ok === false ? check.failure : check.success}
+      <td colSpan={isEditMode ? 1 : 2}>
+        <div className={styles.reportCheckLabel}>
+          {result.message ?? (result.ok ? check.success : check.failure)}
         </div>
       </td>
+      {isEditMode && <td>
+        <label className={styles.reportCheckContainer}>
+          <input type={`checkbox`} onChange={e => setSelected(e.target.checked)} checked={selected}/>
+        </label>
+      </td>}
     </tr>
   );
 }
 
-function FileView({file}: {file: File}) {
+function FileView({name, version, path}: {name: string, version: string, path: string}) {
+  const file = useReleaseFile({
+    name,
+    version,
+  }, path);
+
+  if (file === null)
+    return <>File not found</>;
+
   return (
-    <Editor path={file.name} defaultValue={getFileContent(file)} options={{readOnly: true}}/>
+    <Editor path={path} defaultValue={file} options={{readOnly: true}}/>
+  );
+}
+
+function SidebarProvider({name, version, children}: {name: string, version: string, children: React.ReactNode}) {
+  const releaseInfo = useReleaseInfo({
+    name,
+    version,
+  });
+
+  const sidebar = useReleaseSidebar(releaseInfo);
+
+  return (
+    <DocsSidebarProvider name={`foo`} items={sidebar}>
+      {children}
+    </DocsSidebarProvider>
+  );
+}
+
+function LoadingPage() {
+  return (
+    <HtmlClassNameProvider className={clsx(styles.html)}>
+      <DocsSidebarProvider name={`foo`} items={[]}>
+        <Layout>
+        Loading in progress
+        </Layout>
+      </DocsSidebarProvider>
+    </HtmlClassNameProvider>
   );
 }
 
 function PackageInfoPage() {
-  const [packageInfo, setPackageInfo] = useState<{
-    filesDict: Map<string, File>;
-    sidebar: any;
-  } | null>(null);
-
   const location = useLocation();
+
   const search = new URLSearchParams(location.search.slice(1));
-  const query = search.get(`q`);
-  const name = search.get(`name`);
-  const version = search.get(`version`);
-  const filePath = search.get(`file`);
+  const name = search.get(`name`)!;
+  const path = search.get(`file`);
 
-  const searchNoFile = new URLSearchParams(location.search.slice(1));
-  searchNoFile.delete(`file`);
-  const searchNoFileString = searchNoFile.toString();
+  const version = useResolvedVersion({
+    name,
+    version: search.get(`version`),
+  });
 
-  useEffect(() => {
-    Promise.resolve().then(async () => {
-      setPackageInfo(await getPackageInfo(name, version, file => {
-        if (file === null)
-          return `?${searchNoFileString}`;
-
-        const searchFile = new URLSearchParams(searchNoFileString);
-        searchFile.set(`file`, file);
-        return `?${searchFile.toString()}`;
-      }));
-    });
-  }, [name, version, searchNoFileString]);
-
-  const file = filePath
-    ? packageInfo?.filesDict.get(filePath.toLowerCase()) ?? null
-    : null;
-
-  const children = file
-    ? <FileView file={file}/>
-    : packageInfo
-      ? <ReportView name={name!} version={version!} filesDict={packageInfo.filesDict}/>
-      : null;
-
-  const sidebarItems = packageInfo
-    ? [...packageInfo.sidebar]
-    : [];
-
-  if (typeof query === `string`) {
-    sidebarItems.unshift({
-      type: `link`,
-      label: <SidebarEntry icon={ArrowLeftIcon} name={`Back to search`}/>,
-      href: `/packages?q=${encodeURIComponent(query)}`,
-    }, {
-      type: `html`,
-      value: `<div style="height: 10px"/>`,
-    });
-  }
+  const children = path
+    ? <FileView name={name} version={version} path={path}/>
+    : <ReportView name={name} version={version}/>;
 
   return (
-    <HtmlClassNameProvider className={clsx(styles.html, !!file && styles.fileHtml)}>
-      <DocsSidebarProvider name={`foo`} items={sidebarItems}>
+    <HtmlClassNameProvider className={clsx(styles.html, !!path && styles.fileHtml)}>
+      <SidebarProvider name={name} version={version}>
         <Layout>
           {children}
         </Layout>
-      </DocsSidebarProvider>
+      </SidebarProvider>
     </HtmlClassNameProvider>
   );
 }
@@ -411,8 +469,10 @@ function PackageInfoPage() {
 // eslint-disable-next-line arca/no-default-export
 export default function PackageInfoPageWrapper() {
   return (
-    <BrowserOnly>
-      {() => <PackageInfoPage/>}
-    </BrowserOnly>
+    <Suspense fallback={<LoadingPage/>}>
+      <BrowserOnly>
+        {() => <PackageInfoPage/>}
+      </BrowserOnly>
+    </Suspense>
   );
 }
