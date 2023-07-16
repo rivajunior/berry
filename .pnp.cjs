@@ -214,7 +214,7 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:packages/yarnpkg-types"\
     }\
   ],\
-  "enableTopLevelFallback": false,\
+  "enableTopLevelFallback": true,\
   "ignorePatternData": "(^(?:\\\\.yarn\\\\/sdks(?:\\\\/(?!\\\\.{1,2}(?:\\\\/|$))(?:(?:(?!(?:^|\\\\/)\\\\.{1,2}(?:\\\\/|$)).)*?)|$))$)",\
   "fallbackExclusionList": [\
     ["@yarnpkg/builder", ["workspace:packages/yarnpkg-builder"]],\
@@ -43919,7 +43919,7 @@ const RAW_RUNTIME_STATE =
           ["loose-envify", "npm:1.4.0"],\
           ["object-assign", "npm:4.1.1"],\
           ["prop-types", "npm:15.8.1"],\
-          ["react", null],\
+          ["react", "npm:16.13.1"],\
           ["scheduler", "npm:0.19.1"]\
         ],\
         "packagePeers": [\
@@ -58685,7 +58685,33 @@ Required by: ${issuerForDisplay}
       const issuerInformation = getPackageInformationSafe(issuerLocator);
       let dependencyReference = issuerInformation.packageDependencies.get(dependencyName);
       let fallbackReference = null;
-
+      if (dependencyReference == null) {
+        if (issuerLocator.name !== null) {
+          const exclusionEntry = runtimeState.fallbackExclusionList.get(issuerLocator.name);
+          const canUseFallbacks = !exclusionEntry || !exclusionEntry.has(issuerLocator.reference);
+          if (canUseFallbacks) {
+            for (let t = 0, T = fallbackLocators.length; t < T; ++t) {
+              const fallbackInformation = getPackageInformationSafe(fallbackLocators[t]);
+              const reference = fallbackInformation.packageDependencies.get(dependencyName);
+              if (reference == null)
+                continue;
+              if (alwaysWarnOnFallback)
+                fallbackReference = reference;
+              else
+                dependencyReference = reference;
+              break;
+            }
+            if (runtimeState.enableTopLevelFallback) {
+              if (dependencyReference == null && fallbackReference === null) {
+                const reference = runtimeState.fallbackPool.get(dependencyName);
+                if (reference != null) {
+                  fallbackReference = reference;
+                }
+              }
+            }
+          }
+        }
+      }
       let error = null;
       if (dependencyReference === null) {
         if (isDependencyTreeRoot(issuerLocator)) {
@@ -59163,7 +59189,6 @@ if (process.mainModule === module) {
     try {
       reportSuccess(defaultApi.resolveRequest(request, issuer));
     } catch (error) {
-      throw error;
       reportError(error.code, error.message, error.data);
     }
   };
