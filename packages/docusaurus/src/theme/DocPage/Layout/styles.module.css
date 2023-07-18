@@ -13,3 +13,42 @@
 .docsWrapper {
   display: flex;
 }
+
+.modalParent {
+  display: flex;
+
+  position: fixed;
+
+  inset: 0;
+  top: calc(var(--ifm-navbar-height) - 1px);
+  z-index: calc(var(--ifm-z-index-fixed) - 1);
+}
+
+@media (max-width: 768px) {
+  .modalParent {
+    display: none;
+  }
+}
+
+.modalOverlay {
+  position: absolute;
+
+  inset: 0;
+  z-index: -1;
+
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.modalContent {
+  margin: auto;
+
+  max-width: 700px;
+  max-height: 70vh;
+  overflow-y: scroll;
+
+  background: #ffffff;
+  border-radius: 10px;
+
+  padding: 30px;
+  padding-bottom: calc(30px - var(--ifm-paragraph-margin-bottom));
+}

@@ -6255,6 +6255,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/react-modal@npm:^3":
+  version: 3.16.0
+  resolution: "@types/react-modal@npm:3.16.0"
+  dependencies:
+    "@types/react": "npm:*"
+  checksum: de97dd46861ddc2dd0a5881804bc2332a4324ba8f9288c719a7d2c28e6b2996ddcaa2995e851bc711b2c65b2244626895ff077ebb37364ffecd21247199d5442
+  languageName: node
+  linkType: hard
+
 "@types/react-router-config@npm:*, @types/react-router-config@npm:^5.0.6":
   version: 5.0.6
   resolution: "@types/react-router-config@npm:5.0.6"
@@ -7388,6 +7397,7 @@ __metadata:
     "@types/pako": "npm:^2"
     "@types/react": "npm:^16.8.0"
     "@types/react-instantsearch-dom": "npm:^6"
+    "@types/react-modal": "npm:^3"
     "@types/react-virtualized": "npm:^9"
     "@types/react-window": "npm:^1"
     "@types/resolve": "npm:^1.20.0"
@@ -7420,6 +7430,7 @@ __metadata:
     react-instantsearch-hooks-web: "npm:^6.36.0"
     react-json-doc: "npm:^2.2.0"
     react-loading-skeleton: "npm:^3.3.1"
+    react-modal: "npm:^3.16.1"
     react-query: "npm:^3.39.3"
     react-select: "npm:5.1.0"
     react-select-virtualized: "npm:^5.3.0"
@@ -14227,6 +14238,13 @@ __metadata:
   dependencies:
     pify: "npm:^2.2.0"
   checksum: f01927ce59bccec804e171bf859a26e362c1f50aa9ebc69f7cafdcce3859d29d4b6267fd47237c18b0a1830614bd3f0ee14b7380d9bad18a4e7af9b5f0b6984f
+  languageName: node
+  linkType: hard
+
+"exenv@npm:^1.2.0":
+  version: 1.2.2
+  resolution: "exenv@npm:1.2.2"
+  checksum: 6840185e421394bcb143debb866d31d19c3e4a4bca87d2f319d68d61afff353b3c678f2eb389e3b98ab9aecbec19f6bebbdc4193984378af0a3366c498a7efc8
   languageName: node
   linkType: hard
 
@@ -25525,7 +25543,7 @@ pem@dexus/pem:
   languageName: node
   linkType: hard
 
-"react-lifecycles-compat@npm:^3.0.4":
+"react-lifecycles-compat@npm:^3.0.0, react-lifecycles-compat@npm:^3.0.4":
   version: 3.0.4
   resolution: "react-lifecycles-compat@npm:3.0.4"
   checksum: c66b9c98c15cd6b0d0a4402df5f665e8cc7562fb7033c34508865bea51fd7b623f7139b5b7e708515d3cd665f264a6a9403e1fa7e6d61a05759066f5e9f07783
@@ -25550,6 +25568,21 @@ pem@dexus/pem:
   peerDependencies:
     react: ">=16.8.0"
   checksum: 7b4f4c5a1286bb8d288f6140252b50d203b375ac14d57ba30abc5bc38067ab7a4dfef1e5ebe9d0f3c687bf4b8f6550ae872b2644ec9a25843bf1c92b7942d5b6
+  languageName: node
+  linkType: hard
+
+"react-modal@npm:^3.16.1":
+  version: 3.16.1
+  resolution: "react-modal@npm:3.16.1"
+  dependencies:
+    exenv: "npm:^1.2.0"
+    prop-types: "npm:^15.7.2"
+    react-lifecycles-compat: "npm:^3.0.0"
+    warning: "npm:^4.0.3"
+  peerDependencies:
+    react: ^0.14.0 || ^15.0.0 || ^16 || ^17 || ^18
+    react-dom: ^0.14.0 || ^15.0.0 || ^16 || ^17 || ^18
+  checksum: 79787ed2754f65168fccefcef50b509fa1cbc2b44907f92dcfd78ea6f9702668c70604f192a4bb45badb664902fb100179d6d191e478310be94e656271963905
   languageName: node
   linkType: hard
 

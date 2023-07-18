@@ -7,9 +7,9 @@ description: What makes Yarn one of the fastest package managers around.
 
 ## Official benchmarks
 
-The two following graphs show the time it took to run a full install on the GitHub Actions runner every day of the past week, on all major package managers, averaged over multiple runs performed during the day, with each run running multiple installs.
+The two following graphs show the time it took to run a full install on the GitHub Action runners, every day of the past week, on all major package managers, averaged over multiple runs performed during the day, with each run being itself averaged over multiple installs.
 
-One graph shows the install time of a Next.js project, and the other a Gatsby project. The two solid lines both represent the master branch of Yarn, with the light blue one being Yarn PnP installs, and the dark blue one being Yarn operating under `nodeLinker: node-modules`.
+The first graph shows the install time of a Next.js project, and the second one of a Gatsby project. The two solid lines both represent the master branch of Yarn, with the light blue one being Yarn PnP installs, and the dark blue one being Yarn operating under `nodeLinker: node-modules`. The dotted blue line represents Yarn Classic.
 
 :::tip
 This is only a small subset of the benchmarks we run every three hours on the latest version of each tool. To see all variants of those tests, consult our dedicated [Datadog dashboard](https://yarnpkg.com/benchmarks).

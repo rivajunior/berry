@@ -5,6 +5,8 @@ title: "Workspaces"
 description: A tour of what Yarn has to offer to monorepo projects.
 ---
 
+import {TerminalCode} from '@yarnpkg/docusaurus/src/components/TerminalCode';
+
 ## What are workspaces?
 
 Workspaces are the name of individual packages that are part of the same project and that Yarn will install and link together to simplify cross-references.
@@ -74,19 +76,15 @@ The `workspace:` protocol accepts either a regular semver range, or the special 
 
 ### Focused installs
 
-A common concern when discovering workspaces is how you need to install all of their dependencies whenever you wish to work on a single one of them. Yarn provides a solution via [`yarn focus`](/cli/focus).
+A common concern when discovering workspaces is how you need to install all of their dependencies whenever you wish to work on a single one of them. Yarn provides a solution via [`yarn workspaces focus`](/cli/workspaces/focus).
 
 This command takes a list of workspaces, extend the list to include transitive dependencies, and exclude everything else from the install. For example, the following would let you install only the dependencies required for your main app to be built and deployed:
 
-```
-yarn focus @my-org/app
-```
+<TerminalCode command={`yarn workspaces focus @my-org/app`}/>
 
 If you wish to also skip installing `devDependencies`, set the `--production` flag. In the following example, Yarn will install the dependencies from all workspaces, but only the production ones:
 
-```
-yarn focus -A --production
-```
+<TerminalCode command={`yarn workspaces focus -A --production`}/>
 
 ### Global scripts
 
@@ -98,18 +96,12 @@ Global scripts are characterized by at least one colon (`:`) in the script name.
 
 Scripts from multiple workspaces can be run in parallel if they share the same name, by using [`yarn workspaces foreach`](/cli/workspaces/foreach). The following example shows you how to publish all packages in your project in parallel, but respecting topological order (so that a workspace only gets published once all other workspaces it depends on did):
 
-```
-yarn workspaces foreach -pt npm publish
-```
+<TerminalCode command={`yarn workspaces foreach -pt npm publish`}/>
 
 By default `yarn workspaces foreach` will run the commands on every workspace in the project, but it can be tweaked. In this example we use the `--since` flag to instead only select workspaces that were modified in the current branch compared to the [main branch](/):
 
-```
-yarn workspaces foreach --since run lint
-```
+<TerminalCode command={`yarn workspaces foreach --since run lint`}/>
 
 Similarly, the `--from` flag will instead select all workspaces matching the provided glob pattern. As for all other Yarn commands, the `--from` flag will be applied to both workspace names and paths relative to the current working directory. For example, this command will run the `build` script on the current workspace and all other workspaces it depends on:
 
-```
-yarn workspaces foreach --from . -R run build
-```
+<TerminalCode command={`yarn workspaces foreach --from . -R run build`}/>

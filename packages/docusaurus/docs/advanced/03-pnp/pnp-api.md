@@ -1,5 +1,5 @@
 ---
-category: advanced
+category: FOO
 slug: /advanced/pnpapi
 title: "PnP API"
 description: In-depth documentation of the PnP API.

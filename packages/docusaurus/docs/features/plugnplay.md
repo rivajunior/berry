@@ -5,7 +5,6 @@ title: "Plug'n'Play"
 description: An overview of Plug'n'Play, a powerful and innovative installation strategy for Node.
 ---
 
-
 ## What is Yarn Plug'n'Play?
 
 Yarn Plug'n'Play (generally referred to as Yarn PnP) is the default installation strategy in modern releases of Yarn. It can be swapped out for more traditional approaches (including `node_modules` installs, or pnpm-style symlink-based approaches), but we recommend it when creating new projects due to its numerous improvements.
@@ -123,3 +122,5 @@ A good recommendation to avoid this kind of issue is to have a "tooling" workspa
 Yarn PnP was designed to use the exact same "public interfaces" as other package managers, with differences being kept to what already were implementation details. If a project works with Yarn PnP, it should work everywhere!
 
 One caveat though: the opposite isn't always true. Since other package managers don't / can't enforce proper listing of dependencies, they are more vulnerable to shipping ghost dependencies by accident to their consumers. In that way, using Yarn PnP can be seen as a good practice for the health of the ecosystem! 🙂
+
+### How can I fix ghost dependencies?

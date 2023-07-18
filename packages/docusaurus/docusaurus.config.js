@@ -108,10 +108,10 @@ const config = {
             position: `left`,
           },
           {
-            type: `doc`,
-            docId: `advanced/architecture`,
-            position: `left`,
+            type: `docSidebar`,
+            sidebarId: `advanced`,
             label: `Advanced`,
+            position: `left`,
           },
           {
             href: `https://discord.gg/yarnpkg`,

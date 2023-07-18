@@ -11121,6 +11121,16 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@types/react-modal", [\
+      ["npm:3.16.0", {\
+        "packageLocation": "./.yarn/cache/@types-react-modal-npm-3.16.0-d84f390903-de97dd4686.zip/node_modules/@types/react-modal/",\
+        "packageDependencies": [\
+          ["@types/react-modal", "npm:3.16.0"],\
+          ["@types/react", "npm:16.9.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@types/react-router", [\
       ["npm:5.1.19", {\
         "packageLocation": "./.yarn/cache/@types-react-router-npm-5.1.19-cb9302b3da-a3e34227eb.zip/node_modules/@types/react-router/",\
@@ -13394,6 +13404,7 @@ const RAW_RUNTIME_STATE =
           ["@types/pako", "npm:2.0.0"],\
           ["@types/react", "npm:16.9.2"],\
           ["@types/react-instantsearch-dom", "npm:6.12.3"],\
+          ["@types/react-modal", "npm:3.16.0"],\
           ["@types/react-virtualized", "npm:9.21.22"],\
           ["@types/react-window", "npm:1.8.5"],\
           ["@types/resolve", "npm:1.20.2"],\
@@ -13426,6 +13437,7 @@ const RAW_RUNTIME_STATE =
           ["react-instantsearch-hooks-web", "virtual:efae73f2e9aa11493dde5182b5b7f0894b5c101cb3c916b74523dc0bde92d8579259d43c7f83a5363dbd8939dc3d1e6c45c5965b9191878533d9a2c19b046d70#npm:6.36.0"],\
           ["react-json-doc", "virtual:efae73f2e9aa11493dde5182b5b7f0894b5c101cb3c916b74523dc0bde92d8579259d43c7f83a5363dbd8939dc3d1e6c45c5965b9191878533d9a2c19b046d70#npm:2.2.0"],\
           ["react-loading-skeleton", "virtual:efae73f2e9aa11493dde5182b5b7f0894b5c101cb3c916b74523dc0bde92d8579259d43c7f83a5363dbd8939dc3d1e6c45c5965b9191878533d9a2c19b046d70#npm:3.3.1"],\
+          ["react-modal", "virtual:efae73f2e9aa11493dde5182b5b7f0894b5c101cb3c916b74523dc0bde92d8579259d43c7f83a5363dbd8939dc3d1e6c45c5965b9191878533d9a2c19b046d70#npm:3.16.1"],\
           ["react-query", "virtual:efae73f2e9aa11493dde5182b5b7f0894b5c101cb3c916b74523dc0bde92d8579259d43c7f83a5363dbd8939dc3d1e6c45c5965b9191878533d9a2c19b046d70#npm:3.39.3"],\
           ["react-select", "virtual:efae73f2e9aa11493dde5182b5b7f0894b5c101cb3c916b74523dc0bde92d8579259d43c7f83a5363dbd8939dc3d1e6c45c5965b9191878533d9a2c19b046d70#npm:5.1.0"],\
           ["react-select-virtualized", "virtual:efae73f2e9aa11493dde5182b5b7f0894b5c101cb3c916b74523dc0bde92d8579259d43c7f83a5363dbd8939dc3d1e6c45c5965b9191878533d9a2c19b046d70#npm:5.3.0"],\
@@ -30444,6 +30456,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["exenv", [\
+      ["npm:1.2.2", {\
+        "packageLocation": "./.yarn/cache/exenv-npm-1.2.2-eeb9069149-6840185e42.zip/node_modules/exenv/",\
+        "packageDependencies": [\
+          ["exenv", "npm:1.2.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["exif-parser", [\
       ["npm:0.1.12", {\
         "packageLocation": "./.yarn/cache/exif-parser-npm-0.1.12-ff077373a4-72bffba154.zip/node_modules/exif-parser/",\
@@ -44407,6 +44428,36 @@ const RAW_RUNTIME_STATE =
         ],\
         "packagePeers": [\
           "@types/react",\
+          "react"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["react-modal", [\
+      ["npm:3.16.1", {\
+        "packageLocation": "./.yarn/cache/react-modal-npm-3.16.1-3ba7cf9e93-79787ed275.zip/node_modules/react-modal/",\
+        "packageDependencies": [\
+          ["react-modal", "npm:3.16.1"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:efae73f2e9aa11493dde5182b5b7f0894b5c101cb3c916b74523dc0bde92d8579259d43c7f83a5363dbd8939dc3d1e6c45c5965b9191878533d9a2c19b046d70#npm:3.16.1", {\
+        "packageLocation": "./.yarn/__virtual__/react-modal-virtual-687b686615/0/cache/react-modal-npm-3.16.1-3ba7cf9e93-79787ed275.zip/node_modules/react-modal/",\
+        "packageDependencies": [\
+          ["react-modal", "virtual:efae73f2e9aa11493dde5182b5b7f0894b5c101cb3c916b74523dc0bde92d8579259d43c7f83a5363dbd8939dc3d1e6c45c5965b9191878533d9a2c19b046d70#npm:3.16.1"],\
+          ["@types/react", "npm:16.9.2"],\
+          ["@types/react-dom", null],\
+          ["exenv", "npm:1.2.2"],\
+          ["prop-types", "npm:15.8.1"],\
+          ["react", "npm:17.0.2"],\
+          ["react-dom", "virtual:efae73f2e9aa11493dde5182b5b7f0894b5c101cb3c916b74523dc0bde92d8579259d43c7f83a5363dbd8939dc3d1e6c45c5965b9191878533d9a2c19b046d70#npm:17.0.2"],\
+          ["react-lifecycles-compat", "npm:3.0.4"],\
+          ["warning", "npm:4.0.3"]\
+        ],\
+        "packagePeers": [\
+          "@types/react-dom",\
+          "@types/react",\
+          "react-dom",\
           "react"\
         ],\
         "linkType": "HARD"\

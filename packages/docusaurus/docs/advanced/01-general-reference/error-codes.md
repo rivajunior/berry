@@ -7,13 +7,11 @@ description: A list of Yarn's error codes with detailed explanations.
 
 <!-- Never remove the entries in this file, as we want to support older releases -->
 
-> *Are you a plugin author and want to declare your own error codes that don't match the semantic of the ones provided here? Please relinquish one character and use the `YNX` prefix (ex `YNX001`) instead of `YN0`!*
->
-> *Keeping this convention will help our users to figure out which error codes can be found on this documentation and which ones should instead be checked against the individual documentation of the plugins they use.*
+:::info
+Are you a plugin author and want to declare your own error codes that don't match the semantic of the ones provided here? Please relinquish one character and use the `YNX` prefix (ex `YNX001`) instead of `YN0`!
 
-```toc
-className: toc toc-no-item
-```
+Keeping this convention will help our users to figure out which error codes can be found on this documentation and which ones should instead be checked against the individual documentation of the plugins they use.
+:::
 
 ## YN0000 - `UNNAMED`
 
@@ -242,7 +240,7 @@ This option is typically meant to be used on your CI and production servers, and
 
 ## YN0029 - `CROSS_DRIVE_VIRTUAL_LOCAL`
 
-This error code is deprecated.
+> **Removed:** Virtuals aren't implemented using symlinks anymore.
 
 ## YN0030 - `FETCH_FAILED`
 
@@ -404,3 +402,39 @@ Yarn failed to locate a package version that could satisfy the requested range. 
 - The registry may not have been set properly (so Yarn is querying the public npm registry instead of your internal one)
 
 - The version may have been unpublished (although this shouldn't be possible for the public registry)
+
+## YN0083 - `AUTOMERGE_GIT_ERROR`
+
+When autofixing merge conflicts, Yarn needs to know what are the two lockfile versions it must merge together. To do that, it'll run `git rev-parse MERGE_HEAD HEAD` and/or `git rev-parse REBASE_HEAD HEAD`, depending on the situation. If both of those commands fail, the merge cannot succeed.
+
+This may happen if someone accidentally committed the lockfile without first resolving the merge conflicts - should that happen, you'll need to revert the lockfile to an earlier working version and run `yarn install`.
+
+## YN0085 - `UPDATED_RESOLUTION_RECORD`
+
+This message is printed when a lockfile entry is added or removed from a project.
+
+## YN0086 - `EXPLAIN_PEER_DEPENDENCIES_CTA`
+
+Peer dependencies are a little complex, and debugging them may require a lot of information. Since Yarn tries its best to keep messages on a single line, we provide a `yarn explain peer-requirements` command that goes into much more details than what we show on regular installs.
+
+To use it, simply pass it the `p`-prefixed code provided in the original peer resolution error message:
+
+```
+yarn explain peer-requirements pf649cd
+```
+
+## YN0087 - `MIGRATION_SUCCESS`
+
+When migrating from a major version to the next, some default values may change. When that's the case, Yarn will attempt to temporarily keep the old default by pinning their values in your configuration settings.
+
+To see the exact changes applied when this message appears, check the content of the `.yarnrc.yml` file and any other file that may appear modified in your repository checkout.
+
+## YN0088 - `VERSION_NOTICE`
+
+On local machines, Yarn will periodically check whether new versions are available. Should one be, an informational message will be printed once, then silenced until the next day.
+
+You don't have to upgrade if you don't wish to - but keeping Yarn up-to-date is generally a good idea, as they tend to often come with a significant amount of performance improvements, bugfixes, and new features.
+
+## YN0089 - `TIPS_NOTICE`
+
+Our research showed that even our power users aren't always aware of some of the less obvious features in Yarn. To improve discoverability, on local machines, Yarn will display every day a tip about some of the nuggets it contains. Perhaps one of them will help you improve your infrastructure someday?

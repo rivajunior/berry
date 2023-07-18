@@ -5,23 +5,35 @@ title: "Scripting"
 description: Some of the features Yarn provides to help you write scripts.
 ---
 
+import {TerminalCode} from '@yarnpkg/docusaurus/src/components/TerminalCode';
+
+## Environment files
+
+Yarn will automatically interpret the content of `.env.yarn` files, and inject them within all commands run by `yarn run`. This behavior can be configured through the use of the [`injectEnvironmentFiles`](/configuration/yarnrc#injectEnvironmentFiles) setting.
+
+Note that you can also configure files that will be loaded but *only if present*; making it possible to write conditional imports such as:
+
+```yaml
+injectEnvironmentFiles:
+  - .env.yarn
+  - .env.local?
+```
+
+Where `.env.local` will take precedence only if present, and ignored otherwise.
+
 ## Parallel tasks
 
 Yarn has a native integration for the background job syntax (`foo&`) within scripts defined in the `scripts` field. It will run them in parallel, and each line of the output will be prefixed by an identifier showing where they come from. For example, the following command will run linting and tests in parallel, and report once both are finished:
 
-```
-yarn lint & yarn test
-```
+<TerminalCode command={`yarn lint & yarn test`}/>
 
 ## Portable shell
 
 Windows portability can be troublesome with other package managers. Scripts can't expect a Posix shell to be available, so you have to rely on strange hacks to use semi-portable scripts - or drop them altogether and use Node.js scripts instead, defeating the point of small, non-intrusive scripts in the first place. That is, unless you use Yarn!
 
-Yarn implements and maintains a Posix-like shell interpreter that supports all of the syntax you typically find within scripts, along with a couple of simple builtins like `cd` / `echo`. For instance, the following command will work just fine whether you run the script on Windows or Linux:
+Yarn implements and maintains a Posix-like shell interpreter that supports all of the syntax you typically find within scripts, along with a couple of simple builtins like `cd` / `echo`. For instance, the following command will work just fine on both Windows and Linux despite assigning environment variables:
 
-```
-rm -rf build && yarn build && cd build && node ./dist.js
-```
+<TerminalCode command={`NODE_ENV=production webpack`}/>
 
 :::info
 We say it's a Posix-like interpreter rather than a Posix-compatible interpreter because it doesn't implement some of the most complex features that aren't useful in the context of the `scripts` field. For instance, multi-line flow control structures such as `while` aren't supported. 

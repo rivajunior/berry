@@ -205,7 +205,7 @@ function SearchResult({query, hit}: any) {
         <div className={styles.resultMain}>
           {title ?? <Skeleton/>}
           <div className={styles.resultDescription}>
-            {hit.description ?? <Skeleton count={2}/>}
+            {title ? hit.description : <Skeleton count={2}/>}
           </div>
         </div>
       </div>

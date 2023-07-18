@@ -5,12 +5,6 @@ title: "Lexicon"
 description: Definitions of common terms used throughout the documentation.
 ---
 
-```toc
-className: toc toc-no-item
-```
-
-<!-- Note that all entries within this file must be alphabetically sorted -->
-
 ### Build Scripts
 
 Refers to tasks executed right after the packages got installed; typically the `postinstall` scripts configured in the [`scripts` field](/configuration/manifest#scripts) from the manifest.
@@ -25,9 +19,7 @@ A dependency (listed in the [`dependencies` field](/configuration/manifest#depen
 
 When a package A has a dependency B, Yarn guarantees that A will be able to access B if the install is successful. Note that this is the only promise we make regarding regular dependencies: in particular, there is no guarantee that package B will be the same version than the one used in other parts of the application.
 
-See also: [Development Dependency](#development-dependency)
-
-See also: [Peer Dependency](#peer-dependency)
+See also: [Development Dependency](#development-dependency), [Peer Dependency](#peer-dependency)
 
 ### Descriptor
 
@@ -39,17 +31,13 @@ A dependency (listed in the [`devDependencies` field](/configuration/manifest#de
 
 Development dependencies are very much like regular dependencies except that they only matter for local packages. Packages fetched from remote registries such as npm will not be able to access their development dependencies, but packages installed from local sources (such as [workspaces](#workspaces) or the [`portal:` protocol](#portals)) will.
 
-See also: [Dependency](#dependency)
-
-See also: [Peer Dependency](#peer-dependency)
+See also: [Dependency](#dependency), [Peer Dependency](#peer-dependency)
 
 ### Fetcher
 
 Fetchers are the components tasked with extracting the full package data from a <abbr>reference</abbr>. For example, the npm fetcher would download the package tarballs from the npm registry.
 
-See also: [Architecture](/advanced/architecture)
-
-See also: the [`Fetcher` interface](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Fetcher.ts#L34)
+See also: [Architecture](/advanced/architecture), [Fetcher interface](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Fetcher.ts#L34)
 
 ### Hoisting
 
@@ -61,15 +49,15 @@ Because the hoisting is heavily connected to the filesystem and the Node resolut
 
 Linkers are the components that consume both a dependency tree and a store of package data, and generate in return disk artifacts specific to the environment they target. For example, the <abbr>Plug'n'Play</abbr> linker generates a single `.pnp.cjs` file.
 
-See also: [Architecture](/advanced/architecture)
-
-See also: the [`Linker` interface](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Linker.ts#L28)
-
-See also: the [`Installer` interface](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Installer.ts#L18)
+See also: [Architecture](/advanced/architecture), [Installer interface](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Installer.ts#L18), [Linker interface](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Linker.ts#L28)
 
 ### Local Cache
 
-The local cache is a way to protect against registries going down by keeping a cache of your packages within your very project (often checked-in within the repository). While not always practical (it causes the repository size to grow, although we have ways to mitigate it significantly), it presents various interesting properties:
+The local cache, or offline mirror, is a way to protect your project against the package registry going down.
+
+When the local cache is enabled, Yarn generates a copy of all packages you install in the `.yarn/cache` folder that you can then add to your repository. Subsequent installs will then reuse packages from this folder rather than downloading them anew.
+
+While not always practical (it causes the repository size to grow, although we have ways to mitigate it significantly), it presents various interesting properties:
 
 - It doesn't require additional infrastructure, such as a [Verdaccio proxy](https://verdaccio.org/)
 - It doesn't require additional configuration, such as registry authentication
@@ -84,29 +72,29 @@ A locator is a combination of a package name (for example `lodash`) and a packag
 
 ### Manifest
 
-A manifest is a `package.json` file.
+The manifest is the file defining the metadata associated to a package (its name, version, dependencies...). In the JavaScript ecosystem, it's the `package.json` file.
 
-### Monorepository
+### Monorepo
 
-A monorepository is a repository that contains multiple packages. For example, [Babel](https://github.com/babel/babel/tree/master/packages) and [Jest](https://github.com/facebook/jest/tree/master/packages) are examples of such repositories - they each contain dozen of small packages that each rely on one another.
+A monorepo is a repository that contains multiple packages. [Babel](https://github.com/babel/babel/tree/master/packages), [Jest](https://github.com/facebook/jest/tree/master/packages), and even [Yarn itself](https://github.com/yarnpkg/yarn/tree/master/packages) are examples of such repositories - they each contain dozen of small packages that depend on one another.
 
-See also: [Workspaces](/features/workspaces)
+Yarn provides native support for monorepos via "workspaces". It makes it easy to install the dependencies of multiple local packages by running a single install, and to connect them all together so that they don't have to be published before their changes can be reused by other parts of your project.
+
+See also: [Workspaces (feature)](/features/workspaces), [Workspace (lexicon)](#workspace).
 
 ### Package
 
 Packages are nodes of the dependency tree. Simply put, a package is a bundle of source code usually characterized by a `package.json` at its root. Packages can define <abbr>dependencies</abbr>, which are other packages that need to be made available for it to work properly.
 
-### Peer dependency
+### Peer Dependency
 
 A dependency (listed in the [`peerDependencies` field](/configuration/manifest#peerDependencies) of the manifest) describes a relationship between two packages.
 
 Contrary to regular dependencies, a package A with a peer dependency on B doesn't guarantee that A will be able to access B - it's up to the package that depends on A to manually provide a version of B compatible with request from A. This drawback has a good side too: the package instance of B that A will access is guaranteed to be the exact same one as the one used by the ancestor of A. This matters a lot when B uses `instanceof` checks or singletons.
 
-See also: [Development Dependencies](#development-dependencies)
-See also: [Peer Dependency](#peer-dependency)
-See also: [Singleton Package](#singleton-package)
+See also: [Development Dependency](#development-dependency), [Singleton Package](#singleton-package)
 
-### Peer-dependent Package
+### Peer-Dependent Package
 
 A peer-dependent package is a package that lists peer dependencies.
 
@@ -116,8 +104,7 @@ See also: [Virtual Packages](#virtual-package)
 
 Plugins are a new concept introduced in Yarn 2+. Through the use of plugins, Yarn can be extended and made even more powerful - whether it's through the addition of new <abbr>resolvers</abbr>, <abbr>fetchers</abbr>, or <abbr>linkers</abbr>.
 
-See also: [Plugins](/features/plugins)
-See also: the [`Plugin` interface](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Plugin.ts#L67)
+See also: [Plugins](/features/plugins), [Plugin interface](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Plugin.ts#L67)
 
 ### Plug'n'Play
 
@@ -157,8 +144,7 @@ See also: [Protocols](/features/protocols)
 
 Resolvers are the components tasked from converting <abbr>descriptors</abbr> into <abbr>locators</abbr>, and extracting the package <abbr>manifests</abbr> from the package <abbr>locators</abbr>. For example, the npm resolver would check what versions are available on the npm registry and return all the candidates that satisfy the <abbr>semver</abbr> requirements, then would query the npm registry to fetch the full metadata associated with the selected resolution.
 
-See also: [Architecture](/advanced/architecture)
-See also: the [`Resolver` interface](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Resolver.ts#L45)
+See also: [Architecture](/advanced/architecture), [Resolver interface](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Resolver.ts#L45)
 
 ### Scope
 
@@ -206,9 +192,7 @@ Generally speaking workspaces are a Yarn features used to work on multiple proje
 
 In the context of Yarn's vocabulary, workspaces are local <abbr>packages</abbr> that directly belong to a <abbr>project</abbr>.
 
-See also: [Packages](#package)
-
-See also: [Workspaces](/features/workspaces)
+See also: [Packages](/features/packages), [Workspaces](/features/workspaces)
 
 ### Worktree
 
