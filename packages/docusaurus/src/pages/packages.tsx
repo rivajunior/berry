@@ -25,8 +25,7 @@ export default function Packages(): JSX.Element {
 
   return (
     <Layout
-      // @ts-expect-error
-      title={siteConfig.title}
+      title={`Package search`}
       description={siteConfig.tagline}>
       <InstantSearch indexName={`npm-search`} searchClient={searchClient}>
         <SearchInterface/>

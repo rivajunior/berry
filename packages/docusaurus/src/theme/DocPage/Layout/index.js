@@ -68,14 +68,14 @@ const useFocusModal = () => {
 };
 
 // eslint-disable-next-line arca/no-default-export
-export default function DocPageLayout({children}) {
+export default function DocPageLayout({title, children}) {
   const sidebar = useDocsSidebar();
   const [hiddenSidebarContainer, setHiddenSidebarContainer] = useState(false);
 
   const modal = useFocusModal();
 
   return (
-    <Layout wrapperClassName={styles.docsWrapper}>
+    <Layout title={title} wrapperClassName={styles.docsWrapper}>
       <BackToTopButton />
       {modal}
       <div className={styles.docPage}>

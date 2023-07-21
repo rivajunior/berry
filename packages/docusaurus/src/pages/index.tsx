@@ -1,4 +1,3 @@
-import Link                    from '@docusaurus/Link';
 import {useHistory}            from '@docusaurus/router';
 import {HtmlClassNameProvider} from '@docusaurus/theme-common';
 import useDocusaurusContext    from '@docusaurus/useDocusaurusContext';
@@ -21,8 +20,7 @@ export default function Home(): JSX.Element {
 
   return (
     <Layout
-      // @ts-expect-error
-      title={siteConfig.title}
+      title={`Home page`}
       description={siteConfig.tagline}>
       <HtmlClassNameProvider className={styles.html}>
         <main className={styles.main}>

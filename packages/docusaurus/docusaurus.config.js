@@ -13,7 +13,7 @@ const config = {
   // TODO: Switch back to `throw`
   onBrokenLinks: `warn`,
   onBrokenMarkdownLinks: `warn`,
-  favicon: `img/favicon.ico`,
+  favicon: `img/yarn-favicon.svg`,
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want

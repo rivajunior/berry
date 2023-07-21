@@ -431,7 +431,7 @@ function LoadingPage() {
     <HtmlClassNameProvider className={clsx(styles.html)}>
       <DocsSidebarProvider name={`foo`} items={[]}>
         <Layout>
-        Loading in progress
+          Loading in progress
         </Layout>
       </DocsSidebarProvider>
     </HtmlClassNameProvider>
@@ -457,7 +457,7 @@ function PackageInfoPage() {
   return (
     <HtmlClassNameProvider className={clsx(styles.html, !!path && styles.fileHtml)}>
       <SidebarProvider name={name} version={version}>
-        <Layout>
+        <Layout title={`${name}`}>
           {children}
         </Layout>
       </SidebarProvider>
