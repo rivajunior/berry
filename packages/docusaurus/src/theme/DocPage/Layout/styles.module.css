@@ -20,8 +20,9 @@
   position: fixed;
 
   inset: 0;
-  top: calc(var(--ifm-navbar-height) - 1px);
   z-index: calc(var(--ifm-z-index-fixed) - 1);
+
+  padding-top: calc(var(--ifm-navbar-height) - 1px);
 }
 
 @media (max-width: 768px) {
