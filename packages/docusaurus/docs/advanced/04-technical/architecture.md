@@ -5,10 +5,6 @@ title: "Architecture"
 description: An overview of Yarn's architecture.
 ---
 
-```toc
-# This code block gets replaced with the Table of Contents
-```
-
 ## General architecture
 
 Yarn works through a core package (published as `@yarnpkg/core`) that exposes the various base components that make up a project. Some of the components are classes that you might recognize from the API: `Configuration`, `Project`, `Workspace`, `Cache`, `Manifest`, and others. All those are provided by the core package.
@@ -35,12 +31,12 @@ What happens when running `yarn install` can be summarized in a few different st
 
     - Now that we have the exact set of packages that make up our dependency tree, we iterate over it and for each of them we start a new request to the cache to know whether the package is anywhere to be found. If it isn't we do just like we did in the previous step and we ask our plugins (through the [`Fetcher`](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Fetcher.ts) interface) whether they know about the package ([`supports`](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Fetcher.ts#L43)) and if so to retrieve it from whatever its remote location is ([`fetch`](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Fetcher.ts#L67)).
 
-    - Interesting tidbit regarding the fetchers: they communicate with the core through an abstraction layer over `fs`. We do this so that our packages can come from many different sources - it can be from a zip archive for packages downloaded from a registry, or from an actual directory on the disk for `portal:` dependencies.
+    - Interesting tidbit regarding the fetchers: they communicate with the core through an abstraction layer over `fs`. We do this so that our packages can come from many different sources - it can be from a zip archive for packages downloaded from a registry, or from an actual directory on the disk for [`portal:`](/features/protocols#portal) dependencies.
 
 3. And finally, once all the packages are ready for consumption, comes the "link step":
 
     - In order to work properly, the packages you use must be installed on the disk in some way. For example, in the case of a native Node application, your packages would have to be installed into a set of `node_modules` directories so that they could be located by the interpreter. That's what the linker is about. Through the [`Linker`](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Linker.ts) and [`Installer`](https://github.com/yarnpkg/berry/blob/master/packages/yarnpkg-core/sources/Installer.ts) interfaces the Yarn core will communicate with the registered plugins to let them know about the packages listed in the dependency tree, and describe their relationships (for example it would tell them that `tapable` is a dependency of `webpack`). The plugins can then decide what to do of this information in whatever way they see fit.
 
-    - Doing this means that new linkers can be created for other programming languages pretty easily - you just need to write your own logic regarding what should happen from the packages provided by Yarn. Want to generate an `__autoload.php`? Do it! Want to setup a Python virtual env? No problemo!
+    - Doing this means that new linkers can be created for other programming languages pretty easily - you just need to write your own logic regarding what should happen from the packages provided by Yarn. Want to generate an `__autoload.php`? Do it! Want to setup a Python virtual env? No problem!
 
     - Something else that's pretty cool is that the packages from within the dependency tree don't have to all be of the same type. Our plugin design allows instantiating multiple linkers simultaneously. Even better - the packages can depend on one another across linkers! You could have a JavaScript package depending on a Python package (which is technically the case of `node-gyp`, for example).

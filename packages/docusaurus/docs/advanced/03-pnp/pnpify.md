@@ -5,9 +5,9 @@ title: "PnPify"
 description: An overview of PnPify, one of the PnP compatibility layers which emulates virtual node_modules directories and provides IDE support.
 ---
 
-```toc
-# This code block gets replaced with the Table of Contents
-```
+:::danger
+PnPify is mostly deprecated since Yarn supports [`node_modules`](/configuration/yarnrc#nodeLinker) installs out of the box.
+:::
 
 ## Motivation
 

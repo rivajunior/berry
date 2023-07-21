@@ -1,6 +1,6 @@
 ---
 category: advanced
-path: /advanced/plugin-tutorial
+slug: /advanced/plugin-tutorial
 title: "Plugin Tutorial"
 description: A basic plugin tutorial which shows how to work with Yarn's plugin API.
 ---

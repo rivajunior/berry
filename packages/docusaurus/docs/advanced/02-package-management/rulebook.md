@@ -15,12 +15,7 @@ To help with that, this page details the up-to-date collection of good practices
 
 ## Packages should only ever require what they formally list in their dependencies
 
-<details>
-<summary>
-
-<b>Why?</b> Because otherwise your package will be susceptible to unpredictable [hoisting](/advanced/lexicon#hoisting) that will lead some of your consumers to experience pseudo-random crashes, depending on the other packages they will happen to use. Click on this paragraph to expand it and read a detailed example of the issues typically triggered by incorrect hoisting.
-
-</summary>
+**Why?** Because otherwise your package will be susceptible to unpredictable [hoisting](/advanced/lexicon#hoisting) that will lead some of your consumers to experience pseudo-random crashes, depending on the other packages they will happen to use.
 
 Imagine that Alice uses Babel. Babel depends on an utility package which itself depends on an old version of Lodash. Since the utility package already depends on Lodash, Bob, the Babel maintainer, decided to use Lodash without formally declaring it in Babel itself.
 
@@ -30,11 +25,11 @@ Because of the hoisting, Lodash will be put at the top, the tree becoming someth
 
 ![](/2020-08-29-16-38-30.png)
 
-So far, everything is nice: the utility package can still require Lodash, but now Babel can too. Perfect! Now, imagine that Alice also adds Gatsby to the mix, which would change the dependency tree as such:
+So far, everything is nice: the utility package can still require Lodash, but we no longer need to create sub-directories within Babel. Now, imagine that Alice also adds Gatsby to the mix, which we'll pretend also depends on Lodash, but this time on a modern release; the tree will look like this:
 
 ![](/2020-08-29-16-34-13.png)
 
-Now the hoisting becomes more interesting - since Babel doesn't formally declare the dependency, two different hoisting layouts can happen. The first one is pretty much identical to what we already had before, and under this layout things will be working just fine:
+The hoisting becomes more interesting - since Babel doesn't formally declare the dependency, two different hoisting layouts can happen. The first one is pretty much identical to what we already had before, with the exception that we now have two copies of Lodash, with only a single one hoisted to the stop so we don't cause a conflict:
 
 ![](/2020-08-29-16-43-25.png)
 
@@ -42,11 +37,9 @@ But a second layout is just as likely! And that's when things become trickier:
 
 ![](/2020-08-29-16-46-00.png)
 
-First, let's check that this layout is valid: Gatsby still gets its Lodash 4 dependency, the Babel utility package still gets Lodash 1, and Babel itself still gets the utility package, just like before. But hold on, something else changed! Babel will no longer access Lodash 1! It'll instead retrieve the Lodash 4 copy that Gatsby provided, likely incompatible with whatever Babel originally expected. In the best case the application will crash, in the worst case it'll silently pass and generate incorrect results.
+First, let's check that this layout is valid: Gatsby still gets its Lodash 4 dependency, the Babel utility package still gets Lodash 1, and Babel itself still gets the utility package, just like before. But something else changed! Babel will no longer access Lodash 1! It'll instead retrieve the Lodash 4 copy that Gatsby provided, likely incompatible with whatever Babel originally expected. In the best case the application will crash, in the worst case it'll silently pass and generate incorrect results.
 
 If Babel had instead defined Lodash 1 as its own dependency, the package manager would have been able to encode this constraint and ensure that the requirement would have been met regardless of the hoisting.
-
-</details>
 
 **Solution:** In most cases (when the missing dependency is a utility package), the fix is really just to add the missing entry to the [`dependencies` field](/configuration/manifest#dependencies). While often enough, a few more complex cases sometimes arise:
 
